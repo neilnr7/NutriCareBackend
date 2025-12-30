@@ -1,0 +1,77 @@
+type User @table {
+  displayName: String!
+  email: String!
+  passwordHash: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  weight: Float!
+  height: Float!
+  age: Int!
+  gender: String!
+  activityLevel: String!
+  photoUrl: String
+  firstName: String
+  lastName: String
+  goals: [String]
+}
+
+type FoodItem @table {
+  name: String!
+  calories: Float!
+  protein: Float!
+  carbohydrates: Float!
+  fats: Float!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  brand: String
+  servingSize: Float
+  servingUnit: String
+  fiber: Float
+  sugar: Float
+  sodium: Float
+  cholesterol: Float
+  imageUrl: String
+}
+
+type Meal @table {
+  user: User!
+  name: String!
+  mealType: String!
+  mealDate: Date!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  notes: String
+}
+
+type MealFoodItem @table(key: ["meal", "foodItem"]) {
+  meal: Meal!
+  foodItem: FoodItem!
+  quantity: Float!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  customServingSize: Float
+  customServingUnit: String
+}
+
+type Recipe @table {
+  user: User!
+  name: String!
+  instructions: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  description: String
+  preparationTime: Int
+  cookingTime: Int
+  servings: Int
+  imageUrl: String
+}
+
+type RecipeFoodItem @table(key: ["recipe", "foodItem"]) {
+  recipe: Recipe!
+  foodItem: FoodItem!
+  quantity: Float!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  customServingSize: Float
+  customServingUnit: String
+}

@@ -1,0 +1,16 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Firebase
+.firebase/
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db

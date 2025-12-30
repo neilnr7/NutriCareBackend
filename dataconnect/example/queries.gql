@@ -1,0 +1,67 @@
+mutation CreateNewUser($displayName: String!, $email: String!, $passwordHash: String!, $activityLevel: String!, $age: Int!, $gender: String!, $height: Float!, $weight: Float!) @auth(level: USER) {
+  user_insert(data: {
+    displayName: $displayName,
+    email: $email,
+    passwordHash: $passwordHash,
+    activityLevel: $activityLevel,
+    age: $age,
+    gender: $gender,
+    height: $height,
+    weight: $weight,
+    createdAt_expr: "request.time",
+    updatedAt_expr: "request.time"
+  })
+}
+
+query GetMyProfile @auth(level: USER) {
+  user(key: {id_expr: "auth.uid"}) {
+    id
+    displayName
+    email
+    firstName
+    lastName
+    photoUrl
+    activityLevel
+    age
+    gender
+    goals
+    height
+    weight
+  }
+}
+
+mutation UpdateMyProfile($displayName: String, $firstName: String, $lastName: String, $photoUrl: String, $activityLevel: String, $age: Int, $gender: String, $goals: [String]) @auth(level: USER) {
+  user_update(
+    key: {id_expr: "auth.uid"},
+    data: {
+      displayName: $displayName,
+      firstName: $firstName,
+      lastName: $lastName,
+      photoUrl: $photoUrl,
+      activityLevel: $activityLevel,
+      age: $age,
+      gender: $gender,
+      goals: $goals,
+      updatedAt_expr: "request.time"
+    }
+  )
+}
+
+query ListFoodItems @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  foodItems(limit: 50) {
+    id
+    name
+    brand
+    calories
+    carbohydrates
+    cholesterol
+    fats
+    fiber
+    imageUrl
+    protein
+    servingSize
+    servingUnit
+    sodium
+    sugar
+  }
+}
