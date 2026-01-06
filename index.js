@@ -1,20 +1,30 @@
+// ===============================
+// MAIN INDEX FILE
+// ===============================
+
 require("dotenv").config();
+
+process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
+
+
 const admin = require("firebase-admin");
 const { onRequest } = require("firebase-functions/v2/https");
 
-// Initialize Firebase once
+// ---------------- FIREBASE INIT ----------------
 if (!admin.apps.length) {
-    admin.initializeApp();
+  admin.initializeApp({
+    projectId: "demo-no-project",
+  });
 }
 
-// Import handlers
+// ---------------- IMPORT MODULES ----------------
 const patient = require("./patient");
 const doctor = require("./doctor");
+const appointments = require("./appointments");
+
 // ===============================
-
-
-
-// ---------------- PATIENT FUNCTIONS ----------------
+// PATIENT FUNCTIONS
+// ===============================
 exports.sendEmailOTP = onRequest(patient.sendEmailOTP);
 exports.verifyEmailOTP = onRequest(patient.verifyEmailOTP);
 exports.registerPatient = onRequest(patient.registerPatient);
@@ -23,11 +33,41 @@ exports.updatePatientProfile = onRequest(patient.updatePatientProfile);
 exports.getPatientProfile = onRequest(patient.getPatientProfile);
 
 
-// ---------------- DOCTOR FUNCTIONS ----------------
+// ===============================
+// DOCTOR FUNCTIONS
+// ===============================
 exports.sendDoctorEmailOTP = onRequest(doctor.sendDoctorEmailOTP);
 exports.verifyDoctorEmailOTP = onRequest(doctor.verifyDoctorEmailOTP);
 exports.registerDoctor = onRequest(doctor.registerDoctor);
 exports.loginDoctor = onRequest(doctor.loginDoctor);
 exports.updateDoctorProfile = onRequest(doctor.updateDoctorProfile);
 exports.getDoctorProfile = onRequest(doctor.getDoctorProfile);
+exports.getDoctors = onRequest(doctor.getDoctors);
+
+// ===============================
+// APPOINTMENT FUNCTIONS
+// ===============================
+exports.createAppointment = onRequest(appointments.createAppointment);
+exports.getDoctorAppointmentsByDate = onRequest(
+  appointments.getDoctorAppointmentsByDate
+);
+exports.updateAppointmentStatus = onRequest(
+  appointments.updateAppointmentStatus
+);
+exports.addAppointmentReport = onRequest(
+  appointments.addAppointmentReport
+);
+exports.rescheduleAppointment = onRequest(
+  appointments.rescheduleAppointment
+);
+exports.generateWeeklyAppointment = onRequest(
+  appointments.generateWeeklyAppointment
+);
+exports.getPatientAppointments = onRequest(
+  appointments.getPatientAppointments
+);
+exports.getDoctorAppointmentsByStatus = onRequest(
+  appointments.getDoctorAppointmentsByStatus
+);
+
 
