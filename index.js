@@ -21,6 +21,8 @@ if (!admin.apps.length) {
 const patient = require("./patient");
 const doctor = require("./doctor");
 const appointments = require("./appointments");
+const chat = require("./chat");
+
 
 // ===============================
 // PATIENT FUNCTIONS
@@ -70,4 +72,10 @@ exports.getDoctorAppointmentsByStatus = onRequest(
   appointments.getDoctorAppointmentsByStatus
 );
 
-
+// ---------------- CHAT FUNCTIONS ----------------
+exports.createOrGetChat = onRequest(chat.createOrGetChat);
+exports.sendMessage = onRequest(chat.sendMessage);
+exports.getMessages = onRequest(chat.getMessages);
+exports.getDoctorChats = onRequest(chat.getDoctorChats);
+exports.getPatientChats = onRequest(chat.getPatientChats);
+exports.markChatAsRead = onRequest(chat.markChatAsRead);
