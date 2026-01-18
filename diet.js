@@ -34,7 +34,7 @@ const SLOTS = [
 ];
 
 // =======================================================
-// 0️⃣ GET DOCTOR PATIENTS (FROM CHATS) ✅ ADDED
+// 0️⃣ GET DOCTOR PATIENTS (FROM CHATS)
 // =======================================================
 exports.getDoctorDietPatients = async (req, res) => {
   try {
@@ -51,7 +51,6 @@ exports.getDoctorDietPatients = async (req, res) => {
 
     snap.docs.forEach(doc => {
       const data = doc.data();
-
       if (!seen.has(data.patientId)) {
         seen.add(data.patientId);
         patients.push({
@@ -61,10 +60,7 @@ exports.getDoctorDietPatients = async (req, res) => {
       }
     });
 
-    return res.json({
-      success: true,
-      patients,
-    });
+    return res.json({ success: true, patients });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -76,7 +72,6 @@ exports.getDoctorDietPatients = async (req, res) => {
 exports.saveDietPlan = async (req, res) => {
   try {
     const doctorUid = await verifyRole(req, "doctor");
-
     const { patientId, weeklyDiet } = req.body;
 
     if (!patientId || !weeklyDiet) {
@@ -88,6 +83,7 @@ exports.saveDietPlan = async (req, res) => {
       return res.status(404).json({ error: "Patient not found" });
     }
 
+    // 🔍 Validate structure
     for (const day of DAYS) {
       if (!weeklyDiet[day]) {
         return res.status(400).json({ error: `Missing day: ${day}` });
@@ -105,11 +101,21 @@ exports.saveDietPlan = async (req, res) => {
       }
     }
 
+    // ✅ Initialize weeklyStatus (if not present)
+    const weeklyStatus = {};
+    for (const day of DAYS) {
+      weeklyStatus[day] = {};
+      for (const slot of SLOTS) {
+        weeklyStatus[day][slot] = false;
+      }
+    }
+
     await db.collection("diets").doc(patientId).set(
       {
         patientId,
         doctorId: doctorUid,
         weeklyDiet,
+        weeklyStatus,
         updatedAt: FieldValue.serverTimestamp(),
         createdAt: FieldValue.serverTimestamp(),
       },
@@ -138,13 +144,11 @@ exports.getDietForDoctor = async (req, res) => {
     }
 
     const dietSnap = await db.collection("diets").doc(patientId).get();
-
     if (!dietSnap.exists) {
       return res.json({ success: true, diet: null });
     }
 
     const diet = dietSnap.data();
-
     if (diet.doctorId !== doctorUid) {
       return res.status(403).json({ error: "Not your patient diet" });
     }
@@ -152,6 +156,7 @@ exports.getDietForDoctor = async (req, res) => {
     return res.json({
       success: true,
       diet: diet.weeklyDiet,
+      status: diet.weeklyStatus || {},
     });
   } catch (err) {
     return res.status(403).json({ error: err.message });
@@ -164,16 +169,121 @@ exports.getDietForDoctor = async (req, res) => {
 exports.getDietForPatient = async (req, res) => {
   try {
     const patientUid = await verifyRole(req, "patient");
-
     const dietSnap = await db.collection("diets").doc(patientUid).get();
 
     if (!dietSnap.exists) {
       return res.json({ success: true, diet: null });
     }
 
+    const data = dietSnap.data();
+
     return res.json({
       success: true,
-      diet: dietSnap.data().weeklyDiet,
+      diet: data.weeklyDiet,
+      status: data.weeklyStatus || {},
+    });
+  } catch (err) {
+    return res.status(403).json({ error: err.message });
+  }
+};
+
+// =======================================================
+// 4️⃣ UPDATE DIET STATUS (PATIENT ONLY) 🆕
+// =======================================================
+exports.updateDietStatus = async (req, res) => {
+  try {
+    const patientUid = await verifyRole(req, "patient");
+    const { day, slot, completed } = req.body;
+
+    if (!day || !slot || typeof completed !== "boolean") {
+      return res.status(400).json({ error: "day, slot, completed required" });
+    }
+
+    if (!DAYS.includes(day) || !SLOTS.includes(slot)) {
+      return res.status(400).json({ error: "Invalid day or slot" });
+    }
+
+    await db.collection("diets").doc(patientUid).set(
+      {
+        weeklyStatus: {
+          [day]: {
+            [slot]: completed,
+          },
+        },
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    return res.json({
+      success: true,
+      message: "Diet status updated",
+    });
+  } catch (err) {
+    return res.status(403).json({ error: err.message });
+  }
+};
+
+// =======================================================
+// 5️⃣ GET DOCTOR PATIENTS (FROM APPOINTMENTS)
+// =======================================================
+exports.getDoctorPatientsFromAppointments = async (req, res) => {
+  try {
+    const doctorUid = await verifyRole(req, "doctor");
+
+    const snap = await db
+      .collection("appointments")
+      .where("doctorId", "==", doctorUid)
+      .orderBy("appointmentDate", "desc")
+      .get();
+
+    const seen = new Set();
+    const patients = [];
+
+    snap.docs.forEach(doc => {
+      const data = doc.data();
+      if (!seen.has(data.patientId)) {
+        seen.add(data.patientId);
+        patients.push({
+          patientId: data.patientId,
+          patientName: data.patientName || "Patient",
+        });
+      }
+    });
+
+    return res.json({ success: true, patients });
+  } catch (err) {
+    return res.status(403).json({ error: err.message });
+  }
+};
+
+// =======================================================
+// 6️⃣ GET DIET STATUS (Doctor / Patient) 🆕
+// =======================================================
+exports.getDietStatus = async (req, res) => {
+  try {
+    const { uid, role } = await verifyAnyRole(req, ["doctor", "patient"]);
+
+    let patientId;
+
+    if (role === "patient") {
+      patientId = uid;
+    } else {
+      patientId = req.query.patientId;
+      if (!patientId) {
+        return res.status(400).json({ error: "patientId required" });
+      }
+    }
+
+    const dietSnap = await db.collection("diets").doc(patientId).get();
+
+    if (!dietSnap.exists) {
+      return res.json({ success: true, weeklyStatus: {} });
+    }
+
+    return res.json({
+      success: true,
+      weeklyStatus: dietSnap.data().weeklyStatus || {},
     });
   } catch (err) {
     return res.status(403).json({ error: err.message });

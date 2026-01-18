@@ -91,3 +91,6 @@ exports.saveDietPlan = onRequest(diet.saveDietPlan);
 exports.getDietForDoctor = onRequest(diet.getDietForDoctor);
 exports.getDietForPatient = onRequest(diet.getDietForPatient);
 exports.getDoctorPatientsFromAppointments = onRequest(diet.getDoctorPatientsFromAppointments);
+exports.updateDietStatus = onRequest(diet.updateDietStatus);
+exports.getDietStatus = onRequest(diet.getDietStatus);
+
