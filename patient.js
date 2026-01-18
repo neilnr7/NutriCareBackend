@@ -242,6 +242,7 @@ exports.registerPatient = onRequest(async (req, res) => {
 // ======================================================================
 // 4️⃣ LOGIN PATIENT (FIXED)
 // ======================================================================
+
 exports.loginPatient = onRequest(async (req, res) => {
   try {
     const { phone, password } = req.body;
@@ -255,7 +256,8 @@ exports.loginPatient = onRequest(async (req, res) => {
       .getUserByPhoneNumber(fullPhone)
       .catch(() => null);
 
-    if (!user) return res.status(404).json({ error: "Phone not registered" });
+    if (!user)
+      return res.status(404).json({ error: "Phone not registered" });
 
     const snap = await db.collection("patients").doc(user.uid).get();
     if (!snap.exists)
@@ -278,6 +280,8 @@ exports.loginPatient = onRequest(async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
 
 
 // ======================================================================

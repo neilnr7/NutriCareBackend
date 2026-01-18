@@ -161,12 +161,15 @@ exports.registerDoctor = async (req, res) => {
 // =======================================================
 // LOGIN DOCTOR
 // =======================================================
+
 exports.loginDoctor = async (req, res) => {
   try {
     const { phone, password } = req.body;
+
     const fullPhone = formatPhone(phone);
 
     const user = await admin.auth().getUserByPhoneNumber(fullPhone);
+
     const snap = await db.collection("doctors").doc(user.uid).get();
 
     const match = await bcrypt.compare(password, snap.data().password);
@@ -180,11 +183,12 @@ exports.loginDoctor = async (req, res) => {
       uid: user.uid,
       token: customToken, // ✅ THIS MUST BE CUSTOM TOKEN
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+
 
 // =======================================================
 // UPDATE DOCTOR PROFILE

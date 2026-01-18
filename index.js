@@ -22,6 +22,8 @@ const patient = require("./patient");
 const doctor = require("./doctor");
 const appointments = require("./appointments");
 const chat = require("./chat");
+const diet = require("./diet");
+
 
 
 // ===============================
@@ -79,3 +81,13 @@ exports.getMessages = onRequest(chat.getMessages);
 exports.getDoctorChats = onRequest(chat.getDoctorChats);
 exports.getPatientChats = onRequest(chat.getPatientChats);
 exports.markChatAsRead = onRequest(chat.markChatAsRead);
+
+
+// ===============================
+// DIET FUNCTIONS
+// ===============================
+exports.getDoctorDietPatients = onRequest(diet.getDoctorDietPatients);
+exports.saveDietPlan = onRequest(diet.saveDietPlan);
+exports.getDietForDoctor = onRequest(diet.getDietForDoctor);
+exports.getDietForPatient = onRequest(diet.getDietForPatient);
+exports.getDoctorPatientsFromAppointments = onRequest(diet.getDoctorPatientsFromAppointments);
